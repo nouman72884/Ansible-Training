@@ -1,35 +1,48 @@
 ---
   - name: install apache2
     apt: name={{ item }} state=latest update_cache=yes
-    loop: ['apache2','libapache2-mod-wsgi-py3','python3-pip','python3-virtualenv','python-mysqldb','python3-mysqldb']
-  
+    loop: ['apache2','libapache2-mod-wsgi-py3','python3-pip','python-pip','python3-virtualenv','python-mysqldb','python3-mysqldb']
+    tags: apache2
+
   - name: ensure apache2 started
     service: name=apache2 state=started enabled=yes
+    tags: apache2
+
 
   - name: ensure mod_wsgi enabled
     apache2_module: state=present name=wsgi
     notify: restart apache2
+    tags: wsgi-enabled
 
   - name: copy app source
     copy: src=demo/app/ dest=/var/www/demo mode=0755
     notify: restart apache2
+    tags: apache2
 
   - name: copy apache virtualhost config
     copy: src=demo/demo.conf dest=/etc/apache2/sites-available mode=0755
     notify: restart apache2
+    tags: apache2
 
-  
+  - name: Install virtualenv via pip
+    pip:
+      name: virtualenv
+      executable: pip
+    tags: venv
 
   - name: setup python virtual environment
     pip: requirements=/var/www/demo/requirements.txt virtualenv=/var/www/demo/.venv
     notify: restart apache2
+    tags: apache2
 
   - name: de-activate default apache site
     file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
     notify: restart apache2
+    tags: deactivate default apache site
 
   - name: activate demo.conf
     file: src=/etc/apache2/sites-available/demo.conf dest=/etc/apache2/sites-enabled/demo.conf state=link
     notify: restart apache2
+    tags: activate demo.conf
 
   

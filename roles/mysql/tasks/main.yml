@@ -1,21 +1,26 @@
 ---
   - name: install tools
-    apt: name={{item}} state=present update_cache=yes
+    apt: name={{item}} state=latest update_cache=yes
     loop: ['python-mysqldb,python3-mysqldb']
-    
+    tags: install tools
+
   - name: install mysql-server
     apt: name=mysql-server state=present update_cache=yes
-
-  - name: ensure mysql listening on all ports 
-    lineinfile: dest=/etc/mysql/my.cnf regexp=^bind-address
-                line="bind-address = 0.0.0.0"
-    notify: restart mysql
+    tags: mysql
 
   - name: ensure mysql started 
     service: name=mysql state=started enabled=yes
+    tags: mysql
 
   - name: create demo db
-    mysql_user: name={{db_name}} state=present
+    mysql_db: name={{db_name}} state=present
+    tags: mysql
 
   - name: create demo db user
     mysql_user: name={{db_user_name}} password={{db_user_pass}} priv=demo.*:ALL host='%'
+    tags: mysql
+
+  # - name: ensure mysql listening on all ports 
+  #   lineinfile: dest=/etc/mysql/my.cnf regexp=^bind-address
+  #               line="bind-address = 0.0.0.0"
+  #   notify: restart mysql
