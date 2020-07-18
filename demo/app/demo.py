@@ -25,7 +25,7 @@ hostname = socket.gethostname()
 
 @app.route('/')
 def index():
-    return 'Hello, World' #%s!\n' % hostname
+    return 'Hello, World  %s!\n' % hostname
 
 @app.route('/db')
 def dbtest():

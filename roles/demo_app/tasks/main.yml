@@ -1,2 +1,36 @@
 ---
-# tasks file for demo_app
+  - name: install web-tools
+    apt: name={{ item }} state=latest update_cache=yes
+    loop: ['python3-pip','python-pip','python3-virtualenv','python-mysqldb','python3-mysqldb']
+    tags: demo_app
+
+  - name: copy app source
+    copy: src=demo/app/ dest=/var/www/demo mode=0755
+    notify: restart apache2
+    tags: demo_app
+
+  - name: copy demo.wsgi
+    template: src=demo.wsgi.j2 dest=/var/www/demo/demo.wsgi mode=0755
+    notify: restart apache2
+    tags: demo_app
+
+  - name: copy apache virtualhost config
+    copy: src=demo/demo.conf dest=/etc/apache2/sites-available mode=0755
+    notify: restart apache2
+    tags: demo_app
+
+  - name: Install virtualenv via pip
+    pip:
+      name: virtualenv
+      executable: pip
+    tags: demo_app
+
+  - name: setup python virtual environment
+    pip: requirements=/var/www/demo/requirements.txt virtualenv=/var/www/demo/.venv
+    notify: restart apache2
+    tags: demo_app
+
+  - name: activate demo.conf
+    file: src=/etc/apache2/sites-available/demo.conf dest=/etc/apache2/sites-enabled/demo.conf state=link
+    notify: restart apache2
+    tags: demo_app
